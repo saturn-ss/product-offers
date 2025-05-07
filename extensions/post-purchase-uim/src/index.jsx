@@ -13,11 +13,11 @@ import {
   Separator,
   Tiles,
   TextBlock,
-  Layout
+  Layout,
 } from "@shopify/post-purchase-ui-extensions-react";
 
 // For local development, replace APP_URL with your local tunnel URL.
-const APP_URL = "https://";
+const APP_URL = "https://something-viking-testament-thu.trycloudflare.com";
 
 // Preload data from your app server to ensure that the extension loads quickly.
 extend(
@@ -39,12 +39,13 @@ extend(
     // For local development, always show the post-purchase page
     return { render: true };
   }
-)
+);
 
 render("Checkout::PostPurchase::Render", () => <App />);
 
 export function App() {
-  const { storage, inputData, calculateChangeset, applyChangeset, done } = useExtensionInput();
+  const { storage, inputData, calculateChangeset, applyChangeset, done } =
+    useExtensionInput();
   const [loading, setLoading] = useState(true);
   const [calculatedPurchase, setCalculatedPurchase] = useState();
 
@@ -52,10 +53,10 @@ export function App() {
 
   const purchaseOption = offers[0];
 
-  // Define the changes that you want to make to the purchase, including the discount
+  // Define the changes that you want to make to the purchase, including the discount to the product.
   useEffect(() => {
     async function calculatePurchase() {
-      // Call Shopify to calculate the new price of the purchase, if the above changes
+      // Call Shopify to calculate the new price of the purchase, if the above changes are applied.
       const result = await calculateChangeset({
         changes: purchaseOption.changes,
       });
@@ -87,11 +88,11 @@ export function App() {
       body: JSON.stringify({
         referenceId: inputData.initialPurchase.referenceId,
         changes: purchaseOption.id,
-      })
+      }),
     })
-    .then((response) => response.json())
-    .then((response) => response.token)
-    .catch((e) => console.log(e));
+      .then((response) => response.json())
+      .then((response) => response.token)
+      .catch((e) => console.log(e));
 
     // Make a request to Shopify servers to apply the changeset.
     await applyChangeset(token);
@@ -112,15 +113,15 @@ export function App() {
         <BlockStack spacing="tight">
           <TextContainer>
             <Text size="medium" emphasized>
-            It&#39;s not too late to add this to your order
+              It&#39;s not too late to add this to your order
             </Text>
           </TextContainer>
           <TextContainer>
             <Text size="medium">
-              Add the {purchaseOption.productTitle} to your order and{ " " }
+              Add the {purchaseOption.productTitle} to your order and{" "}
             </Text>
             <Text size="medium" emphasized>
-              { purchaseOption.changes[0].discount.title}
+              {purchaseOption.changes[0].discount.title}
             </Text>
           </TextContainer>
         </BlockStack>
@@ -134,20 +135,44 @@ export function App() {
       >
         <Image
           description="product photo"
-          source={ purchaseOption.productImageURL }
+          source={purchaseOption.productImageURL}
         />
         <BlockStack />
         <BlockStack>
-          <Heading>{ purchaseOption.productImageURL }</Heading>
+          <Heading>{purchaseOption.productTitle}</Heading>
           <PriceHeader
             discountedPrice={discountedPrice}
             originalPrice={originalPrice}
             loading={!calculatedPurchase}
           />
-          <ProductDescription textLines={ purchaseOption.ProductDescription } />
+          <ProductDescription textLines={purchaseOption.productDescription} />
           <BlockStack spacing="tight">
             <Separator />
-            <MoneyLine />
+            <MoneyLine
+              label="Subtotal"
+              amount={discountedPrice}
+              loading={!calculatedPurchase}
+            />
+            <MoneyLine
+              label="Shipping"
+              amount={shipping}
+              loading={!calculatedPurchase}
+            />
+            <MoneyLine
+              label="Taxes"
+              amount={taxes}
+              loading={!calculatedPurchase}
+            />
+            <Separator />
+            <MoneySummary label="Total" amount={total} />
+          </BlockStack>
+          <BlockStack>
+            <Button onPress={acceptOffer} submit loading={loading}>
+              Pay now · {formatCurrency(total)}
+            </Button>
+            <Button onPress={declineOffer} subdued loading={loading}>
+              Decline this offer
+            </Button>
           </BlockStack>
         </BlockStack>
       </Layout>
@@ -155,25 +180,39 @@ export function App() {
   );
 }
 
+function PriceHeader({ discountedPrice, originalPrice, loading }) {
+  return (
+    <TextContainer alignment="leading" spacing="loose">
+      <Text role="deletion" size="large">
+        {!loading && formatCurrency(originalPrice)}
+      </Text>
+      <Text emphasized size="large" appearance="critical">
+        {" "}
+        {!loading && formatCurrency(discountedPrice)}
+      </Text>
+    </TextContainer>
+  );
+}
+
 function ProductDescription({ textLines }) {
   return (
     <BlockStack spacing="xtight">
-      { textLines.map((text, index) => (
+      {textLines.map((text, index) => (
         <TextBlock key={index} subdued>
-          { text }
+          {text}
         </TextBlock>
       ))}
     </BlockStack>
   );
 }
 
-function MoneyLine({ label, amount, loading = false}) {
+function MoneyLine({ label, amount, loading = false }) {
   return (
     <Tiles>
-      <TextBlock size="small">{ label }</TextBlock>
+      <TextBlock size="small">{label}</TextBlock>
       <TextContainer alignment="trailing">
-        <TextBlock size="small" emphasized>
-          { loading ? "-" : formatCurrency(amount)}
+        <TextBlock emphasized size="small">
+          {loading ? "-" : formatCurrency(amount)}
         </TextBlock>
       </TextContainer>
     </Tiles>
@@ -184,13 +223,13 @@ function MoneySummary({ label, amount }) {
   return (
     <Tiles>
       <TextBlock size="medium" emphasized>
-        { label }
+        {label}
       </TextBlock>
-      <TextBlock alignment="trailing">
+      <TextContainer alignment="trailing">
         <TextBlock emphasized size="medium">
-          { formatCurrency(amount) }
+          {formatCurrency(amount)}
         </TextBlock>
-      </TextBlock>
+      </TextContainer>
     </Tiles>
   );
 }
