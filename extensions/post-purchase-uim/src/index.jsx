@@ -17,7 +17,7 @@ import {
 } from "@shopify/post-purchase-ui-extensions-react";
 
 // For local development, replace APP_URL with your local tunnel URL.
-const APP_URL = "https://something-viking-testament-thu.trycloudflare.com";
+const APP_URL = "https://organizer-meetup-visit-buffer.trycloudflare.com";
 
 // Preload data from your app server to ensure that the extension loads quickly.
 extend(
